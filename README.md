@@ -37,6 +37,63 @@ write.csv(calls, file = "Calls_GSE71566.csv")
 
 ## Agilent Data ##
 
+```R
+# loading requried libraries
+library(limma)
+library(biomaRt)
+
+# creating the mapping from agilent probe ID to gene ID, using BiomaRt library
+mart = useMart('ENSEMBL_MART_ENSEMBL')
+mart <- useDataset('hsapiens_gene_ensembl', mart)
+annotLookup <- getBM(
+  mart = mart,
+  attributes = c(
+    'agilent_sureprint_g3_ge_8x60k',
+    'wikigene_description',
+    'ensembl_gene_id',
+    'gene_biotype',
+    'external_gene_name'))
+
+write.table(
+  annotLookup,
+  paste0('Human_agilent_sureprint_g3_ge_8x60k', gsub("-", "_", as.character(Sys.Date())), '.tsv'),
+  sep = '\t',
+  row.names = FALSE,
+  quote = FALSE)
+
+# Targets.txt file is a tab-delimited text file containing FileName, and if required, other columns for other sample properties
+targets = readTargets('Targets.txt', sep = '\t')
+project = read.maimages(targets, source = 'agilent', green.only = T, other.columns = 'gIsWellAboveBG')
+project.bgcorrect <- limma::backgroundCorrect(project, method = 'normexp')
+project.bgcorrect.norm <- normalizeBetweenArrays(project.bgcorrect, method = 'quantile')
+Control <- project.bgcorrect.norm$genes$ControlType==1L
+
+# using dark corners of the chip as the negative control
+NegControl <- project.bgcorrect.norm$genes$ProbeName=='DarkCorner'
+project.bgcorrect.norm.ctrl <- project.bgcorrect.norm[NegControl,]
+NegValue <- colMeans(project.bgcorrect.norm.ctrl$E)
+NoSymbol <- is.na(project.bgcorrect.norm$genes$external_gene_name)
+
+# selecting probes, expressed in at least half of the samples (here this dataset had 8 samples)
+IsExpr <- rowSums(project.bgcorrect.norm$other$gIsWellAboveBG > 0) >= 4
+project.bgcorrect.norm.ctrl <- project.bgcorrect.norm[Control,]
+project.bgcorrect.norm.filt <- project.bgcorrect.norm[!Control & IsExpr, ]
+
+# probes with intensity at least 40% higher than the negative control's intensity
+Expr40 <- project.bgcorrect.norm.filt$E > 1.4*NegValue
+project.bgcorrect.norm.expr40 <- project.bgcorrect.norm[!Control & Expr40, ]
+
+# generating and saving output calls
+Expr40 = data.frame(Expr40)
+Expr40$Gene = project.bgcorrect.norm.filt$genes$GeneName
+Expr40$Probe_ID = project.bgcorrect.norm.filt$genes$ProbeName
+head(Expr40)
+Expr40[Expr40==T] = 1
+Expr40[Expr40==F] = 0
+head(Expr40)
+write.csv(Expr40,file = "Calls_GSE60678.csv")
+```
+
 ## Illumina Beadchip Data ##
 
 ## Clariom Data ##
