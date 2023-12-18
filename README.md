@@ -36,7 +36,9 @@ write.csv(calls, file = "Calls_GSE71566.csv")
 ```
 
 ## Agilent Data ##
+Agilent data mainly consist of images from the microarray chip, containing the information on th brightness of each probe for each sample. Data is analyzed using limma library.
 
+Here we consider probes, present in at least half of the samples, and at least 40% brighter than negative control dark corners, as expressed (1) and the rest as unexpressed (0)
 ```R
 # loading requried libraries
 library(limma)
