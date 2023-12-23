@@ -100,3 +100,24 @@ write.csv(Expr40,file = "Calls_GSE60678.csv")
 
 ## Clariom Data ##
 
+```R
+library(oligo)
+
+celfiles <- list.files("CEL", full = TRUE)
+rawData <- read.celfiles(celfiles)
+calls <- oligo::paCalls(rawData)
+normData <- rma(rawData)
+boxplot(normData)
+expset = exprs(normData)
+expset.log2 = log(expset, 2)
+boxplot(expset.log2, las=2)
+calls.mas5 = mas5calls(rawData)
+calls = data.frame(exprs(calls.mas5))
+pvals = data.frame(calls.mas5@assayData$se.exprs)
+calls[calls=="P" | calls=="M"] = 1
+calls[calls=="A"] = 0
+head(calls)
+write.csv(calls, file = "Calls_GSE71566.csv")
+CALLS = paCalls(object=rawData)
+rawData@assayData
+```
