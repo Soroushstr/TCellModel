@@ -97,6 +97,7 @@ write.csv(Expr40,file = "Calls_GSE60678.csv")
 ```
 
 ## Illumina Beadchip Data ##
+This section uses limma library to read Illumina Beadchip data and conduct detection process to call _Present/Absent_ calls
 
 ## Clariom Data ##
 This section uses oligo library to read Calriom chip and conduct base calling based on _paCalls_ function
