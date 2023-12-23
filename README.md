@@ -99,6 +99,25 @@ write.csv(Expr40,file = "Calls_GSE60678.csv")
 ## Illumina Beadchip Data ##
 This section uses limma library to read Illumina Beadchip data and conduct detection process to call _Present/Absent_ calls
 
+```R
+# using read.idat function from the limma library to read idat files, based on bgx chip annotation file
+idatfiles <- limma::read.idat(idatfiles = ll,
+                              bgxfile = 'HumanHT-12_V4_0_R2_15002873_B.bgx')
+
+# Present-Absent calling using detectionPValues function
+idatfiles$other$Detection <- detectionPValues(x = idatfiles)
+idatnorm <- neqc(idatfiles)
+
+# writing output files
+calls <- as.data.frame(idatnorm$other$Detection)
+calls[calls<0.06] = "P"
+calls[calls!="P"] = "A"
+calls[calls=="P"] = 1
+calls[calls=="A"] = 0
+calls$Probe_ID = idatnorm$genes$Probe_Id
+calls$Gene_name = idatnorm$genes$Symbol
+write.csv(calls, file = "Calls_GSE75404.csv")
+```
 ## Clariom Data ##
 This section uses oligo library to read Calriom chip and conduct base calling based on _paCalls_ function
 
