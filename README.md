@@ -99,6 +99,7 @@ write.csv(Expr40,file = "Calls_GSE60678.csv")
 ## Illumina Beadchip Data ##
 
 ## Clariom Data ##
+This section uses oligo library to read Calriom chip and conduct base calling based on _paCalls_ function
 
 ```R
 library(oligo)
